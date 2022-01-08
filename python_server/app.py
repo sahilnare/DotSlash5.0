@@ -202,6 +202,16 @@ the problem is of time series prediction and model used is RandomforestRegressor
 '''
 @app.route('/price', methods = ["POST"])
 def price():
+    base = {
+        "coconut": 5100,
+        "cotton": 3600,
+        "black_gram": 2800,
+        "maize": 1175,
+        "moong": 3500,
+        "jute": 1675,
+        "wheat": 1350
+    }
+
     data = request.get_json()
     print(data)
     if(data['crop'].lower() == 'maize'):
@@ -223,8 +233,10 @@ def price():
     X = np.array(list(data.values())[1:]).reshape(1, -1)
     print(X.shape)
     # X_scaled = scaler.transform(X)
-    predictions = price_model.predict(X).tolist() 
-    return jsonify(str(predictions))
+    predictions = price_model.predict(X).tolist()
+    print(predictions)
+    price = round((predictions[0] * base[data['crop'].lower()]) / 100, 2 )
+    return jsonify(str(price))
 
 if __name__ == '__main__':
     app.run(port = 5000, debug=True)
