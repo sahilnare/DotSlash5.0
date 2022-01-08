@@ -79,7 +79,7 @@ def allowed_files(filename):
 def recommend_crop():
     data = request.get_json()
     print(data)
-    X = np.array(list(data[0].values())).reshape(1, -1)
+    X = np.array(list(data.values())).reshape(1, -1)
     print(X.shape)
     X_scaled = scaler.transform(X)
     predictions = model.predict(X_scaled).tolist() 
@@ -204,23 +204,23 @@ the problem is of time series prediction and model used is RandomforestRegressor
 def price():
     data = request.get_json()
     print(data)
-    if(data[0]['crop'].lower() == 'maize'):
+    if(data['crop'].lower() == 'maize'):
         price_model = pickle.load(open("maize_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'black_gram'):
+    elif(data['crop'].lower() == 'black_gram'):
         price_model = pickle.load(open("black_gram_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'coconut'):
+    elif(data['crop'].lower() == 'coconut'):
         price_model = pickle.load(open("coconut_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'cotton'):
+    elif(data['crop'].lower() == 'cotton'):
         price_model = pickle.load(open("cotton_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'jute'):
+    elif(data['crop'].lower() == 'jute'):
         price_model = pickle.load(open("jute_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'moong'):
+    elif(data['crop'].lower() == 'moong'):
         price_model = pickle.load(open("moong_price_prediction.pkl", "rb"))
-    elif(data[0]['crop'].lower() == 'wheat'):
+    elif(data['crop'].lower() == 'wheat'):
         price_model = pickle.load(open("wheat_price_prediction.pkl", "rb"))
     
 
-    X = np.array(list(data[0].values())[1:]).reshape(1, -1)
+    X = np.array(list(data.values())[1:]).reshape(1, -1)
     print(X.shape)
     # X_scaled = scaler.transform(X)
     predictions = price_model.predict(X).tolist() 
