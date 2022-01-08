@@ -1,0 +1,7 @@
+Mapbox token = pk.eyJ1Ijoic2FoaWxuYXJlNzgiLCJhIjoiY2t5MDdndHEwMDBlczJxb2FvMmtoemR3ZiJ9.oyPoHxer2FC8Kr5P2f6BSg
+
+OpenWeatherMap key = e2fefc411ec798d7b1aa2b11e166858a
+
+IQAir key = c4777a3e-379f-40e1-af12-1a3a5bf9d4ab
+
+api.openweathermap.org/data/2.5/forecast/daily?q=London&units=metric&cnt=7&appid=e2fefc411ec798d7b1aa2b11e166858a
