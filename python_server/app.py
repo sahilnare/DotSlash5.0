@@ -46,12 +46,21 @@ plant_disease_class = ['Apple-scab :https://www2.ipm.ucanr.edu/agriculture/apple
     'Grape-Leaf-blight_(Isariopsis_Leaf_Spot) :https://www.sciencedirect.com/science/article/abs/pii/S0261219414001598',
     'Grape-healthy:None', 
     'Orange-Haunglongbing-(Citrus_greening) :https://www.aphis.usda.gov/aphis/resources/pests-diseases/hungry-pests/the-threat/citrus-greening/citrus-greening-hp', 
-    'Peach-Bacterial-spot: ', 'Peach___healthy',
-    'Pepper,_bell___Bacterial_spot', 'Pepper,_bell___healthy', 'Potato___Early_blight', 'Potato___Late_blight', 
-    'Potato___healthy', 'Raspberry___healthy', 'Soybean___healthy', 'Squash___Powdery_mildew', 'Strawberry___Leaf_scorch', 
-    'Strawberry___healthy', 'Tomato___Bacterial_spot', 'Tomato___Early_blight', 'Tomato___Late_blight', 'Tomato___Leaf_Mold',
-    'Tomato___Septoria_leaf_spot', 'Tomato___Spider_mites Two-spotted_spider_mite', 'Tomato___Target_Spot', 
-    'Tomato___Tomato_Yellow_Leaf_Curl_Virus', 'Tomato___Tomato_mosaic_virus', 'Tomato___healthy']
+    'Peach-Bacterial-spot ', 'Peach-healthy',
+    'Pepper-bell-Bacterial-spot', 'Pepper-bell-healthy', 
+    'Potato-Early-blight :https://www.ag.ndsu.edu/publications/crops/early-blight-in-potato', 
+    'Potato-Late-blight :https://www.apsnet.org/edcenter/disandpath/oomycete/pdlessons/Pages/LateBlight.aspx', 
+    'Potato-healthy :None', 'Raspberry___healthy', 'Soybean___healthy', 'Squash___Powdery_mildew', 
+    'Strawberry-Leaf-scorch : https://content.ces.ncsu.edu/leaf-scorch-of-strawberry', 
+    'Strawberry-healthy :None', 'Tomato-Bacterial-spot :https://hort.extension.wisc.edu/articles/bacterial-spot-of-tomato/',
+    'Tomato-Early-blight :https://extension.umn.edu/diseases/early-blight-tomato',
+    'Tomato-Late-blight :https://content.ces.ncsu.edu/tomato-late-blight', 
+    'Tomato-Leaf-Mold :https://www.canr.msu.edu/news/tomato-leaf-mold-in-hoophouse-tomatoes',
+    'Tomato-Septoria-leaf-spot :https://www.missouribotanicalgarden.org/gardens-gardening/your-garden/help-for-the-home-gardener/advice-tips-resources/pests-and-problems/diseases/fungal-spots/septoria-leaf-spot-of-tomato.aspx', 
+    'Tomato-Spider-mites(Two-spotted_spider_mite) :https://pnwhandbooks.org/insect/vegetable/vegetable-pests/hosts-pests/tomato-spider-mite',
+    'Tomato-Target-Spot :https://apps.lucidcentral.org/pppw_v10/text/web_full/entities/tomato_target_spot_163.htm', 
+    'Tomato-Yellow-Leaf-Curl-Virus :https://www2.ipm.ucanr.edu/agriculture/tomato/tomato-yellow-leaf-curl/', 
+    'Tomato-mosaic-virus :https://extension.umn.edu/disease-management/tomato-viruses', 'Tomato-healthy :None']
 
 def allowed_files(filename):
     allowed_extensions = ['jpg', 'jpeg', 'png']
@@ -62,6 +71,10 @@ def allowed_files(filename):
     else:
         return False
 
+'''
+ API endpoint for recommending the crop based on 7 features
+ model used is Support Vector Machine with RBF kernel
+'''
 @app.route('/recommend', methods=['POST'])
 def recommend_crop():
     data = request.get_json()
@@ -73,9 +86,10 @@ def recommend_crop():
     plant_pred = plant_list[predictions[0]]
     return jsonify(plant_pred)
 
-
-
-
+'''
+API endpoint for plant disease prediction for 38 different disease
+The model used is MobileNetV2 and dataset link: https://www.kaggle.com/vipoooool/new-plant-diseases-dataset
+'''
 @app.route('/predict', methods = ['POST'])
 def predict():
     if 'file' not in request.files:
@@ -115,6 +129,9 @@ def predict():
 
         return jsonify(json_op)
 
+'''
+API endpoint to estimate height of plant from images using image processing
+'''
 @app.route('/height', methods = ['POST'])
 def height():
     if 'file' not in request.files:
@@ -178,6 +195,36 @@ def height():
         json_op['height'] = str(height)
 
         return jsonify(json_op)
+
+'''
+API endpoint to estimate price of 7 different plants from historical(2012-2019) data
+the problem is of time series prediction and model used is RandomforestRegressor
+'''
+@app.route('/price', methods = ["POST"])
+def price():
+    data = request.get_json()
+    print(data)
+    if(data[0]['crop'].lower() == 'maize'):
+        price_model = pickle.load(open("maize_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'black_gram'):
+        price_model = pickle.load(open("black_gram_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'coconut'):
+        price_model = pickle.load(open("coconut_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'cotton'):
+        price_model = pickle.load(open("cotton_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'jute'):
+        price_model = pickle.load(open("jute_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'moong'):
+        price_model = pickle.load(open("moong_price_prediction.pkl", "rb"))
+    elif(data[0]['crop'].lower() == 'wheat'):
+        price_model = pickle.load(open("wheat_price_prediction.pkl", "rb"))
+    
+
+    X = np.array(list(data[0].values())[1:]).reshape(1, -1)
+    print(X.shape)
+    # X_scaled = scaler.transform(X)
+    predictions = price_model.predict(X).tolist() 
+    return jsonify(str(predictions))
 
 if __name__ == '__main__':
     app.run(port = 5000, debug=True)
