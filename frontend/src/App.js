@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import classNames from "classnames";
-import { Route } from "react-router-dom";
+import { Route, Switch, Redirect } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
+
+import { useGlobalState, setGlobalState } from './state';
 
 import { AppTopbar } from "./AppTopbar";
 import { AppFooter } from "./AppFooter";
@@ -13,6 +15,13 @@ import { WeatherAPI } from "./components/WeatherAPI";
 import { SignIn } from "./components/SignIn";
 import { SignUp } from "./components/SignUp";
 import { Crops } from "./components/Crops";
+import { DiseaseDetection } from "./components/DiseaseDetection";
+import { CropWeekly } from "./components/CropWeekly";
+import { PricePrediction } from "./components/PricePrediction";
+import { TalkWithExperts } from "./components/TalkWithExperts";
+import { Profile } from "./components/Profile";
+
+
 import { Dashboard } from "./components/Dashboard";
 import { ButtonDemo } from "./components/ButtonDemo";
 import { ChartDemo } from "./components/ChartDemo";
@@ -49,9 +58,12 @@ import "./assets/layout/flags/flags.css";
 import "./assets//layout/layout.scss";
 import "./App.scss";
 
+import alanBtn from '@alan-ai/alan-sdk-web';
 
 
 const App = () => {
+
+    const [isAuthenticated, setIsAuthenticated] = useGlobalState("isAuthenticated");
     
     const [layoutMode, setLayoutMode] = useState("static");
     const [layoutColorMode, setLayoutColorMode] = useState("light");
@@ -69,12 +81,27 @@ const App = () => {
     let mobileTopbarMenuClick = false;
 
     useEffect(() => {
+        alanBtn({
+            key: '7ebbce2744e9de9a77f5173eeb38d4cc2e956eca572e1d8b807a3e2338fdd0dc/stage',
+            onCommand: (commandData) => {
+              if (commandData.command === 'go:back') {
+                // Call the client code that will react to the received command
+              }
+            }
+        });
+      }, []);
+
+    useEffect(() => {
         if (mobileMenuActive) {
             addClass(document.body, "body-overflow-hidden");
         } else {
             removeClass(document.body, "body-overflow-hidden");
         }
     }, [mobileMenuActive]);
+
+    useEffect(() => {
+        // setGlobalState("isAuthenticated", false);
+    });
 
     const onInputStyleChange = (inputStyle) => {
         setInputStyle(inputStyle);
@@ -157,12 +184,26 @@ const App = () => {
 
     const menu = [
         {
+            label: "Home",
+            items: [
+                {
+                    label: "Dashboard",
+                    icon: "pi pi-fw pi-home",
+                    to: "/",
+                },
+            ],
+        },
+        {
             label: "Farmer Portal",
             icon: "pi pi-fw pi-sitemap",
             items: [
-                { label: "Maps", icon: "pi pi-fw pi-id-card", to: "/maps" },
-                { label: "Weather Data", icon: "pi pi-fw pi-id-card", to: "/weatherapi" },
-                { label: "Crops", icon: "pi pi-fw pi-id-card", to: "/crops" },
+                { label: "Soil Testing", icon: "pi pi-fw pi-id-card", to: "/maps" },
+                { label: "Crop Recommendation", icon: "pi pi-fw pi-id-card", to: "/crops" },
+                { label: "Disease Detection", icon: "pi pi-fw pi-id-card", to: "/disease" },
+                { label: "Crop Growth", icon: "pi pi-fw pi-id-card", to: "/weekly" },
+                { label: "Price Prediction", icon: "pi pi-fw pi-id-card", to: "/price" },
+                { label: "Talk With Experts", icon: "pi pi-fw pi-id-card", to: "/experts" },
+                { label: "Profile", icon: "pi pi-fw pi-id-card", to: "/profile" },
                 { label: "SignIn", icon: "pi pi-fw pi-id-card", to: "/signin" },
                 { label: "SignUp", icon: "pi pi-fw pi-id-card", to: "/signup" },
             ],
@@ -203,7 +244,7 @@ const App = () => {
             <div className="layout-main-container">
                 
                     <div className="layout-main">
-                        <Route path="/" exact component={Dashboard} />
+                    <Switch>
                         <Route path="/formlayout" component={FormLayoutDemo} />
                         <Route path="/input" component={InputDemo} />
                         <Route path="/floatlabel" component={FloatLabelDemo} />
@@ -226,11 +267,58 @@ const App = () => {
                         <Route path="/crud" component={Crud} />
                         <Route path="/empty" component={EmptyPage} />
                         <Route path="/documentation" component={Documentation} />
-                        <Route path="/maps" component={Maps} />
-                        <Route path="/weatherapi" component={WeatherAPI} />
-                        <Route path="/signin" component={SignIn} />
-                        <Route path="/signup" component={SignUp} />
-                        <Route path="/crops" component={Crops} />
+
+                        <Route
+                            path='/'
+                            exact
+                            render={(props) => isAuthenticated ? <WeatherAPI {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/profile'
+                            exact
+                            render={(props) => isAuthenticated ? <Profile {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/maps'
+                            exact
+                            render={(props) => isAuthenticated ? <Maps {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/signin'
+                            exact
+                            render={(props) => !isAuthenticated ? <SignIn {...props} /> : <Redirect to="/" />}
+                        />
+                        <Route
+                            path='/signup'
+                            exact
+                            render={(props) => !isAuthenticated ? <SignUp {...props} /> : <Redirect to="/" />}
+                        />
+                        <Route
+                            path='/crops'
+                            exact
+                            render={(props) => isAuthenticated ? <Crops {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/disease'
+                            exact
+                            render={(props) => isAuthenticated ? <DiseaseDetection {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/weekly'
+                            exact
+                            render={(props) => isAuthenticated ? <CropWeekly {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/price'
+                            exact
+                            render={(props) => isAuthenticated ? <PricePrediction {...props} /> : <Redirect to="/signin" />}
+                        />
+                        <Route
+                            path='/experts'
+                            exact
+                            render={(props) => isAuthenticated ? <TalkWithExperts {...props} /> : <Redirect to="/signin" />}
+                        />
+                    </Switch>
                     </div>
                 
 
