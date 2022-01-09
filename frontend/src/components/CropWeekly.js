@@ -25,7 +25,7 @@ export const CropWeekly = () => {
         { name: 'Corn', code: 'NY' },
         { name: 'Rice', code: 'RM' },
         { name: 'Wheat', code: 'LDN' },
-        { name: 'Sugar', code: 'IST' },
+        { name: 'Maize', code: 'IST' },
         { name: 'Other', code: 'PRS' }
     ];
   
@@ -60,48 +60,86 @@ export const CropWeekly = () => {
 
     const myUploader = (event) => {
         //event.files == files to upload
+        let cImgUrl;
 
         var formData = new FormData();
         
         formData.append("imageFile", event.files[0]);
-        axios.post('http://localhost:3001/weeklyheight', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        }).then(res => {
-            console.log(res.data);
-            const accHeight = Math.round(res.data.height * 100) / 100;
-            let points = 0;
+        
+        const url = "https://api.cloudinary.com/v1_1/dflkduc49/image/upload";
 
-            switch(weekSelected) {
-                case 1:
-                    if(accHeight < 5.08) {
+        const cFormData = new FormData();
 
-                    }
-                    break;
-                case 2:
-                    if(accHeight < 5.08) {
-                        
-                    }
-                    break;
-                case 3:
-                    if(accHeight < 5.08) {
-                        
-                    }
-                    break;
-                default:
-                    break;
-            }
+            let file = event.files[0];
+            cFormData.append("file", file);
+            cFormData.append("upload_preset", "tyzp2w7e");
 
-            cropService.sendWeeklyCrop({username: userData.user.username, height: accHeight, weekNum: weekSelected});
-            setUploadOpen(false);
-            setTimeout(() => {
-                cropService.getWeeklyCrop({username: userData.user.username}).then(res => {
-                    console.log(res.heights);
-                    setUserCropHeights(res.heights);
+            fetch(url, {
+            method: "POST",
+            body: cFormData
+            })
+            .then((response) => {
+                return response.text();
+            })
+            .then((data) => {
+                cImgUrl = JSON.parse(data);
+
+
+                axios.post('http://localhost:3001/weeklyheight', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }).then(res => {
+                    console.log(res.data);
+                    const accHeight = Math.round(res.data.height * 100) / 100;
+                    let points = 0;
+
+                    switch(weekSelected) {
+                        case 1:
+                            if(accHeight > 0) {
+                                points = 5;
+                            }
+                            break;
+                        case 2:
+                            if(accHeight >= 5.08) {
+                                points = 10;
+                            }
+                            break;
+                        case 3:
+                            if(accHeight >= 10.16) {
+                                points = 10;
+                            }
+                            break;
+                        case 4:
+                            if(accHeight >= 15.24) {
+                                points = 10;
+                            }
+                            break;
+                        case 5:
+                            if(accHeight >= 20.32) {
+                                points = 10;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    setTimeout(() => {
+                        cropService.sendWeeklyCrop({username: userData.user.username, height: accHeight, weekNum: weekSelected, points: points, imagePath: cImgUrl.url});
+                    }, 1000);
+
+                    
+                    setUploadOpen(false);
+                    setTimeout(() => {
+                        cropService.getWeeklyCrop({username: userData.user.username}).then(res => {
+                            console.log(res.heights);
+                            setUserCropHeights(res.heights);
+                        });
+                    }, 5000);
                 });
-            }, 3000);
-        });
+
+
+            });
     }
 
     const finalCropDisplay = products.map((pro, i) => {
@@ -109,6 +147,8 @@ export const CropWeekly = () => {
             pro.height = userCropHeights[i].height;
             pro.inventoryStatus = 'INSTOCK';
             pro.uploaded = 'UPLOADED';
+            pro.points = userCropHeights[i].points;
+            pro.image = userCropHeights[i].imagePath;
             return pro;
         }
         return pro;
@@ -119,7 +159,7 @@ export const CropWeekly = () => {
             <div className="product-item">
                 <div className="product-item-content">
                     <div className="mb-3">
-                        <img src={`assets/demo/images/nature/${product.image}`} alt={product.name} className="product-image" />
+                        <img src={product.image} alt={product.name} className="product-image" />
                     </div>
                     <div>
                         <h4 className="p-mb-1">
@@ -147,13 +187,9 @@ export const CropWeekly = () => {
             <div className="col-12">
                 <div className="card">
                     <h5>Weekly Updates, Get Rewards!</h5>
-                    {/*<div className="col-12 md:col-6 lg:col-4 p-4">
+                    <div className="col-12 md:col-6 lg:col-4 p-4">
                     <Dropdown value={dropdownValue} onChange={(e) => setDropdownValue(e.value)} options={dropdownValues} optionLabel="name" placeholder="New Crop" />
                     </div>
-
-                    <div className="col-12 md:col-6 lg:col-4 p-4">
-                    <Dropdown value={dropdownValue} onChange={(e) => setDropdownValue(e.value)} options={dropdownValues} optionLabel="name" placeholder="Active Crop" />
-                    </div>*/}
                     
                     <Carousel value={finalCropDisplay} numVisible={3} numScroll={3} responsiveOptions={carouselResponsiveOptions} itemTemplate={carouselItemTemplate}></Carousel>
                 </div>
