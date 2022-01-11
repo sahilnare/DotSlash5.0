@@ -10,3 +10,13 @@ We are helping farmers in every stage of farming from crop selecting to monitor 
 <li>Ecommerece market place to redeem the coins received during crop growth mentoring</li>
 <li>Real time weather parameters like temperature, humidity etc and alerts based on location</li>
 
+
+![Pic 1](pics/pic1.png)
+
+![Pic 2](pics/pic2.png)
+
+![Pic 3](pics/pic3.png)
+
+![Pic 4](pics/pic4.png)
+  
+![Pic 5](pics/pic5.png)
